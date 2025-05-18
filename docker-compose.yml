@@ -1,0 +1,28 @@
+services:
+    backend: # Serviço responsável pelo servidor da aplicação, gerenciando as requisições e lógica de negócio.
+        build:
+            context: . # Define o diretório atual como base para o Dockerfile
+        ports:
+            - "3000:3000" # Mapeia a porta 3000 do container para a sua máquina local
+        env_file:
+            - .env # Corrigida a indentação para ficar dentro de "backend"
+        volumes: # Para evitar ficar sempre rebuidando
+            - .:/app
+            - /app/node_modules # Evita que node_modules do container seja sobrescrito
+        depends_on:
+            - mysql # O backend só iniciará depois do MySQL estar pronto
+
+    mysql: # Serviço do banco de dados MySQL
+        image: mysql:8.0 # usa a versão mais recente do MySQL
+        container_name: mysql-clima # Nome do container para facilitar a identificação
+        restart: always # Reinicia o container automaticamente se ele parar
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # Senha do usuario root, definida no .env
+            MYSQL_DATABASE: ${MYSQL_DATABASE} # Nome do banco de dados inicial, do .env tambem
+        ports:
+            - "${MYSQL_PORT}:${MYSQL_PORT}" # Busca a porta de conexão do .env
+        volumes:
+            - mysql_data:/var/lib/mysql # Mantem os dados do banco, evitando que sejam apagados ao reiniciar
+
+volumes:
+    mysql_data: # Volume para armazenar os dados MySQL
